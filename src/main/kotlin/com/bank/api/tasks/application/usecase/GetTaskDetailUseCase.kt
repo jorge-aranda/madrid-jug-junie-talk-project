@@ -1,0 +1,25 @@
+package com.bank.api.tasks.application.usecase
+
+import com.bank.api.tasks.domain.model.Task
+import com.bank.api.tasks.domain.service.TaskService
+import org.springframework.stereotype.Component
+
+/**
+ * Use case: the user views the detail of one of their tasks.
+ */
+@Component
+class GetTaskDetailUseCase(
+    private val taskService: TaskService
+) {
+
+    fun execute(taskId: String, userId: String): Task {
+        val task = taskService.findById(id = taskId)
+            ?: throw NoSuchElementException(
+                "Task not found: $taskId"
+            )
+        require(task.userId == userId) {
+            "Task does not belong to user: $userId"
+        }
+        return task
+    }
+}
