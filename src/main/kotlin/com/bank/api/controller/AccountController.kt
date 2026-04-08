@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -17,28 +18,28 @@ import org.springframework.web.bind.annotation.*
 class AccountController(private val accountService: AccountService) {
 
     @PostMapping
-    @Operation(summary = "Create a new bank account")
-    fun createAccount(@Valid @RequestBody request: CreateAccountRequest): ResponseEntity<Account> {
-        return ResponseEntity.status(HttpStatus.CREATED).body(accountService.createAccount(request))
+    @Operation(summary = "Create a new bank account for the authenticated user")
+    fun createAccount(@Valid @RequestBody request: CreateAccountRequest, principal: Principal): ResponseEntity<Account> {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(accountService.createAccount(request, principal.name))
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get account by ID")
-    fun getAccount(@PathVariable id: String): ResponseEntity<Account> {
-        return ResponseEntity.ok(accountService.getAccount(id))
+    @Operation(summary = "Get account by ID (only own accounts)")
+    fun getAccount(@PathVariable id: String, principal: Principal): ResponseEntity<Account> {
+        return ResponseEntity.ok(accountService.getAccountForOwner(id, principal.name))
     }
 
     @GetMapping
-    @Operation(summary = "Get all accounts, optionally filtered by owner")
-    fun getAccounts(@RequestParam(required = false) owner: String?): ResponseEntity<List<Account>> {
-        val accounts = if (owner != null) accountService.getAccountsByOwner(owner) else accountService.getAllAccounts()
-        return ResponseEntity.ok(accounts)
+    @Operation(summary = "Get all accounts owned by the authenticated user")
+    fun getAccounts(principal: Principal): ResponseEntity<List<Account>> {
+        return ResponseEntity.ok(accountService.getAccountsByOwner(principal.name))
     }
 
     @PostMapping("/transfer")
-    @Operation(summary = "Transfer funds between two accounts")
-    fun transfer(@Valid @RequestBody request: TransferRequest): ResponseEntity<Map<String, Account>> {
-        val (from, to) = accountService.transfer(request)
+    @Operation(summary = "Transfer funds from own account to any account")
+    fun transfer(@Valid @RequestBody request: TransferRequest, principal: Principal): ResponseEntity<Map<String, Account>> {
+        val (from, to) = accountService.transfer(request, principal.name)
         return ResponseEntity.ok(mapOf("from" to from, "to" to to))
     }
 }

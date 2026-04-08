@@ -10,31 +10,36 @@ import java.time.Instant
 @Service
 class AccountService(private val accountRepository: AccountRepository) {
 
-    fun createAccount(request: CreateAccountRequest): Account {
+    fun createAccount(request: CreateAccountRequest, owner: String): Account {
         val account = Account(
-            owner = request.owner,
+            owner = owner,
             balance = request.initialBalance
         )
         return accountRepository.save(account)
     }
 
-    fun getAccount(id: String): Account {
-        return accountRepository.findById(id)
+    fun getAccountForOwner(id: String, owner: String): Account {
+        val account = accountRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Account not found: $id") }
+        if (account.owner != owner) {
+            throw SecurityException("Access denied: you do not own this account")
+        }
+        return account
     }
 
     fun getAccountsByOwner(owner: String): List<Account> {
         return accountRepository.findByOwner(owner)
     }
 
-    fun getAllAccounts(): List<Account> {
-        return accountRepository.findAll()
-    }
-
     @Synchronized
-    fun transfer(request: TransferRequest): Pair<Account, Account> {
+    fun transfer(request: TransferRequest, owner: String): Pair<Account, Account> {
         val from = accountRepository.findById(request.fromAccountId)
             .orElseThrow { IllegalArgumentException("Source account not found: ${request.fromAccountId}") }
+
+        if (from.owner != owner) {
+            throw SecurityException("Access denied: you can only transfer from your own accounts")
+        }
+
         val to = accountRepository.findById(request.toAccountId)
             .orElseThrow { IllegalArgumentException("Destination account not found: ${request.toAccountId}") }
 
@@ -49,7 +54,6 @@ class AccountService(private val accountRepository: AccountRepository) {
 
         val savedFrom = accountRepository.save(from)
         val savedTo = accountRepository.save(to)
-
         return Pair(savedFrom, savedTo)
     }
 }

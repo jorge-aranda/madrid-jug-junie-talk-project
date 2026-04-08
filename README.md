@@ -66,27 +66,46 @@ docker run --rm -p 8080:8080 \
 
 > **Note:** The Docker image runs as a non-privileged user (`appuser`) for security.
 
+## Authentication
+
+The API uses **HTTP Basic Authentication** with Spring Security. You must register a user first, then use those credentials for all subsequent requests.
+
+### Register a user (no auth required)
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "alice", "password": "secret123"}'
+```
+
 ## API Endpoints
 
-| Method | Path                    | Description                          |
-|--------|-------------------------|--------------------------------------|
-| POST   | `/api/accounts`         | Create a new bank account            |
-| GET    | `/api/accounts`         | List all accounts (filter by `owner`)|
-| GET    | `/api/accounts/{id}`    | Get account by ID                    |
-| POST   | `/api/accounts/transfer`| Transfer funds between accounts      |
+| Method | Path                    | Auth Required | Description                                  |
+|--------|-------------------------|---------------|----------------------------------------------|
+| POST   | `/api/auth/register`    | No            | Register a new user                          |
+| POST   | `/api/accounts`         | Yes           | Create a new bank account (owned by you)     |
+| GET    | `/api/accounts`         | Yes           | List your own accounts                       |
+| GET    | `/api/accounts/{id}`    | Yes           | Get your account by ID                       |
+| POST   | `/api/accounts/transfer`| Yes           | Transfer funds from your account to any other|
 
 ### Example: Create an account
 
 ```bash
-curl -X POST http://localhost:8080/api/accounts \
+curl -u alice:secret123 -X POST http://localhost:8080/api/accounts \
   -H "Content-Type: application/json" \
-  -d '{"owner": "Alice", "initialBalance": 1000.00}'
+  -d '{"initialBalance": 1000.00}'
+```
+
+### Example: List your accounts
+
+```bash
+curl -u alice:secret123 http://localhost:8080/api/accounts
 ```
 
 ### Example: Transfer funds
 
 ```bash
-curl -X POST http://localhost:8080/api/accounts/transfer \
+curl -u alice:secret123 -X POST http://localhost:8080/api/accounts/transfer \
   -H "Content-Type: application/json" \
   -d '{"fromAccountId": "<ID_1>", "toAccountId": "<ID_2>", "amount": 250.00}'
 ```

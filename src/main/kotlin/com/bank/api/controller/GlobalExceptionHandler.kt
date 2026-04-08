@@ -21,6 +21,12 @@ class GlobalExceptionHandler {
             .body(mapOf("error" to (ex.message ?: "Bad request")))
     }
 
+    @ExceptionHandler(SecurityException::class)
+    fun handleAccessDenied(ex: SecurityException): ResponseEntity<Map<String, String>> {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(mapOf("error" to (ex.message ?: "Access denied")))
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<Map<String, String>> {
         val errors = ex.bindingResult.fieldErrors.associate { it.field to (it.defaultMessage ?: "Invalid") }
