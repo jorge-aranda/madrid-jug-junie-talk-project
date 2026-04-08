@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: bank-api
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: bankdb
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+server:
+  port: 8080
