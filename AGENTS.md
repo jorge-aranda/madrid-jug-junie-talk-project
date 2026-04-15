@@ -23,7 +23,7 @@ This document defines the rules, conventions and architecture guidelines that an
 ## Project Overview
 
 - **Language:** Kotlin
-- **Framework:** Spring Boot 3 (Spring Security, Spring Data MongoDB)
+- **Framework:** Spring Boot 4 (Spring Security, Spring Data MongoDB)
 - **Build tool:** Gradle (Kotlin DSL)
 - **Database:** MongoDB
 - **Java version:** 17

@@ -1,6 +1,6 @@
 # Bank API
 
-A monolithic REST API built with Spring Boot, Kotlin and MongoDB for managing bank accounts and transfers.
+A monolithic REST API built with Spring Boot 4, Kotlin and MongoDB for managing bank accounts and transfers.
 
 ## Prerequisites
 
