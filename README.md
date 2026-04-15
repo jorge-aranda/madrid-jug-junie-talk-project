@@ -110,6 +110,45 @@ curl -u alice:secret123 -X POST http://localhost:8080/api/accounts/transfer \
   -d '{"fromAccountId": "<ID_1>", "toAccountId": "<ID_2>", "amount": 250.00}'
 ```
 
+## Tasks Domain (Hexagonal Architecture)
+
+The `tasks` domain lives under `com.bank.api.tasks` to leverage Spring Boot's default component scan (rooted at `com.bank.api`). Although it resides inside the `api` package, it is a **separate bounded context** with its own hexagonal architecture — it does **not** depend on the legacy bank code.
+
+### Package structure
+
+| Package | Responsibility |
+|---|---|
+| `api.tasks.api.controller` | REST controllers |
+| `api.tasks.api.model` | DTOs (request/response) |
+| `api.tasks.application.usecase` | Application use cases |
+| `api.tasks.application.model` | Application-level models |
+| `api.tasks.domain.model` | Domain entities |
+| `api.tasks.domain.service` | Domain services |
+| `api.tasks.domain.repository` | Domain repository interfaces |
+| `api.tasks.infrastructure.repository` | Spring Data Mongo repositories |
+| `api.tasks.infrastructure.repository.impl` | Domain repository implementations |
+
+### Task Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| PUT | `/api/tasks` | Yes | Create a new task |
+| GET | `/api/tasks` | Yes | List your tasks |
+| GET | `/api/tasks/{taskId}` | Yes | Get task detail |
+| PATCH | `/api/tasks/{taskId}/complete` | Yes | Mark task as completed |
+| DELETE | `/api/tasks/{taskId}` | Yes | Archive (soft-delete) a task |
+
+## AI Agent Guidelines
+
+This project includes an [`AGENTS.md`](AGENTS.md) file with rules and conventions for AI coding
+agents (Junie, GitHub Copilot, Claude Code, Codex, etc.). Platform-specific configuration files
+reference it as the single source of truth.
+
+See also:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Detailed architecture documentation
+- [docs/DOMAINS.md](docs/DOMAINS.md) — Domain registry and descriptions
+
 ## Configuration
 
 The application uses `application.yml` for configuration. All MongoDB settings can be overridden via Spring Boot properties or environment variables:
