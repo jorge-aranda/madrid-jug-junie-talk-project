@@ -12,7 +12,7 @@ It manages personal tasks for authenticated users.
 
 - **Package:** `com.bank.api.tasks`
 - **Architecture:** Hexagonal (ports & adapters)
-- **Database:** MongoDB (collection: `tasks`)
+- **Database:** MongoDB (collections: `tasks`, `task_groups`)
 
 ---
 
@@ -21,26 +21,47 @@ It manages personal tasks for authenticated users.
 ```
 com.bank.api.tasks
 ├── api
-│   ├── controller/TaskController.kt        # REST endpoints
+│   ├── controller/
+│   │   ├── TaskController.kt              # REST endpoints for tasks
+│   │   └── TaskGroupController.kt         # REST endpoints for task groups
 │   └── model/
-│       ├── TaskRequestDto.kt               # Inbound DTO
-│       └── TaskResponseDto.kt              # Outbound DTO
+│       ├── TaskRequestDto.kt              # Inbound DTO (task)
+│       ├── TaskResponseDto.kt             # Outbound DTO (task)
+│       ├── TaskGroupRequestDto.kt         # Inbound DTO (task group)
+│       └── TaskGroupResponseDto.kt        # Outbound DTO (task group)
 ├── application
 │   ├── usecase/
 │   │   ├── CreateTaskUseCase.kt
 │   │   ├── ListUserTasksUseCase.kt
 │   │   ├── GetTaskDetailUseCase.kt
 │   │   ├── CompleteTaskUseCase.kt
-│   │   └── ArchiveTaskUseCase.kt
-│   └── model/TaskRequest.kt               # Application-level command
+│   │   ├── ArchiveTaskUseCase.kt
+│   │   ├── CreateTaskGroupUseCase.kt
+│   │   ├── ListUserTaskGroupsUseCase.kt
+│   │   ├── GetTaskGroupDetailUseCase.kt
+│   │   ├── AddTaskToGroupUseCase.kt
+│   │   ├── RemoveTaskFromGroupUseCase.kt
+│   │   └── ArchiveTaskGroupUseCase.kt
+│   └── model/
+│       ├── TaskRequest.kt                 # Application-level command (task)
+│       └── TaskGroupRequest.kt            # Application-level command (task group)
 ├── domain
-│   ├── model/Task.kt                      # Domain entity
-│   ├── service/TaskService.kt             # Domain logic
-│   └── repository/TaskRepository.kt       # Port (interface only)
+│   ├── model/
+│   │   ├── Task.kt                        # Domain entity
+│   │   └── TaskGroup.kt                   # Domain entity
+│   ├── service/
+│   │   ├── TaskService.kt                 # Domain logic (tasks)
+│   │   └── TaskGroupService.kt            # Domain logic (task groups)
+│   └── repository/
+│       ├── TaskRepository.kt              # Port (interface only)
+│       └── TaskGroupRepository.kt         # Port (interface only)
 └── infrastructure
     └── repository/
         ├── TaskRepositoryDbo.kt            # MongoRepository + TaskDocument
-        └── impl/TaskRepositoryImpl.kt      # Adapter (implements TaskRepository)
+        ├── TaskGroupRepositoryDbo.kt       # MongoRepository + TaskGroupDocument
+        └── impl/
+            ├── TaskRepositoryImpl.kt       # Adapter (implements TaskRepository)
+            └── TaskGroupRepositoryImpl.kt  # Adapter (implements TaskGroupRepository)
 ```
 
 ---
@@ -51,6 +72,10 @@ com.bank.api.tasks
 - Task IDs are `UUIDv4`, generated at creation time.
 - Tasks can be **completed** (status change) and **archived** (soft-delete).
 - Archived tasks are not returned in list queries.
+- Task groups allow users to organize tasks into named collections.
+- Every task group belongs to a single user.
+- Adding a task already in a group is a no-op (idempotent).
+- Archived task groups are not returned in list queries.
 
 ---
 
@@ -63,6 +88,12 @@ com.bank.api.tasks
 | `GET` | `/api/tasks/{taskId}` | Get task detail |
 | `PATCH` | `/api/tasks/{taskId}/complete` | Mark as completed |
 | `DELETE` | `/api/tasks/{taskId}` | Archive (soft-delete) |
+| `PUT` | `/api/task-groups` | Create a task group (idempotent) |
+| `GET` | `/api/task-groups` | List current user's task groups |
+| `GET` | `/api/task-groups/{taskGroupId}` | Get task group detail |
+| `PATCH` | `/api/task-groups/{taskGroupId}/tasks/{taskId}` | Add task to group |
+| `DELETE` | `/api/task-groups/{taskGroupId}/tasks/{taskId}` | Remove task from group |
+| `DELETE` | `/api/task-groups/{taskGroupId}` | Archive (soft-delete) task group |
 
 - All endpoints require authentication (HTTP Basic via Spring Security).
 - User identification comes from `java.security.Principal` — never from custom headers.
