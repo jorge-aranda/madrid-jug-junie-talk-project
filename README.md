@@ -138,6 +138,17 @@ The `tasks` domain lives under `com.bank.api.tasks` to leverage Spring Boot's de
 | PATCH | `/api/tasks/{taskId}/complete` | Yes | Mark task as completed |
 | DELETE | `/api/tasks/{taskId}` | Yes | Archive (soft-delete) a task |
 
+### Task Group Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| PUT | `/api/task-groups` | Yes | Create a new task group |
+| GET | `/api/task-groups` | Yes | List your task groups |
+| GET | `/api/task-groups/{taskGroupId}` | Yes | Get task group detail |
+| PATCH | `/api/task-groups/{taskGroupId}/tasks/{taskId}` | Yes | Add a task to the group |
+| DELETE | `/api/task-groups/{taskGroupId}/tasks/{taskId}` | Yes | Remove a task from the group |
+| DELETE | `/api/task-groups/{taskGroupId}` | Yes | Archive (soft-delete) a task group |
+
 ## AI Agent Guidelines
 
 This project includes an [`AGENTS.md`](AGENTS.md) file with rules and conventions for AI coding
